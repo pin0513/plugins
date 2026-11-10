@@ -1,6 +1,6 @@
 {
   "name": "reader-based-prose",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "檢查 AI 產出的文件與 skill 是否有參照斷裂（未定義的代號、對話殘留、表格塞太滿），並引導以冷讀者理解測試修正。",
   "author": { "name": "Paul" },
   "keywords": ["writing", "documentation", "skills", "lint", "readability"]
