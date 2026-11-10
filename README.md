@@ -29,7 +29,7 @@ claude plugin install reader-based-prose@pin0513-plugins
 
 | 名稱 | 版本 | 說明 |
 |---|---|---|
-| [reader-based-prose](./plugins/reader-based-prose) | 0.4.1 | 檢查 AI 產出的文件是否有未定義代號、對話殘留、表格塞太滿，並以看不到對話的冷讀者確認能否讀懂。 |
+| [reader-based-prose](./plugins/reader-based-prose) | 0.5.0 | 檢查 AI 產出的文件是否有未定義代號、對話殘留、表格塞太滿，並以看不到對話的冷讀者確認能否讀懂。 |
 
 詳細說明與原始碼見各套件目錄。目前第一個套件是 [reader-based-prose](https://github.com/pin0513/plugins/tree/main/plugins/reader-based-prose)。
 

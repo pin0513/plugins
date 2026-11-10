@@ -10,7 +10,7 @@
       "name": "reader-based-prose",
       "source": "./plugins/reader-based-prose",
       "description": "檢查 AI 產出的文件是否有未定義代號、對話殘留、表格塞太滿，並以冷讀者確認能否讀懂。",
-      "version": "0.4.1",
+      "version": "0.5.0",
       "author": { "name": "Paul" }
     }
   ]

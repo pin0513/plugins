@@ -202,6 +202,14 @@ class NewPatterns(unittest.TestCase):
             self.assertEqual([x.term for x in pc.check_file(p, cfg, root)], ["方案B"])
 
 
+class Guide(unittest.TestCase):
+    def test_guide_states_ignore_limit_and_pending_items(self):
+        out = pc.render("a.md", [pc.Finding("未定義標籤", 1, "XYZ", "x")], 15)
+        self.assertIn("不能用 ignore", out)
+        self.assertIn("【待補】", out)
+        self.assertIn("向使用者提議", out)
+
+
 class SessionStart(unittest.TestCase):
     def _run(self, d):
         return subprocess.run([sys.executable, SCRIPT, "--session-start"], input=json.dumps({"cwd": d}),
@@ -213,6 +221,14 @@ class SessionStart(unittest.TestCase):
             self.assertEqual(r.returncode, 0)
             self.assertIn("不為選項", r.stdout)
             self.assertNotIn("glossary：", r.stdout)
+            # 沒找到 glossary 也要說出來，分得出「沒有」與「沒注入」
+            self.assertIn("沒有找到 glossary", r.stdout)
+
+    def test_rule_priority_and_cell_limit_stated(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = self._run(d)
+            self.assertIn("規則 1 優先", r.stdout)
+            self.assertIn("max_cell_chars", r.stdout)
 
     def test_rules_with_glossary_terms(self):
         with tempfile.TemporaryDirectory() as d:

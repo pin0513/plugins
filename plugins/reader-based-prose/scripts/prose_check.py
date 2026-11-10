@@ -365,13 +365,15 @@ def check_file(path: str, cfg: dict, cfg_root: str) -> list[Finding]:
 
 GUIDE = """處理方式（依定義來源決定，不要一律刪除）：
 - repo 有 glossary 時：優先改用 glossary 裡既有的詞；glossary 裡的詞視為已定義。
-- 業界通用的詞：保留，首次出現時加括號說明。
+- 業界通用的詞（內建 COMMON_TERMS 加上 .prose-check.json 的 allow_terms）：保留，首次出現時加括號說明。
 - 團隊規則檔裡有定義的代號：保留代號當索引，同時寫出內容；或登錄到 .prose-check.json 的 known_terms 並附來源。
 - 只存在對話裡的代號：刪掉改寫成白話，或先登錄進 glossary（附來源）再引用。對話不是讀者打得開的來源。
 - 不知道代號意思時：標【待補】並問使用者，不要自己猜一個定義。
-- 表格過載：表格只放一眼可比較的短句，定義與細節移到表格下方第二層。
-- 確定是誤報：在檔案中加 <!-- prose-check: ignore 詞1, 詞2 -->。
-文件屬於 skills/ 或 docs/ 時，修完後建議再跑 prose-review skill 做冷讀者理解測試。"""
+- 表格過載：每格不超過 max_cell_chars 字（預設 40），定義與細節移到表格下方第二層。
+- 確定是誤報（檢查器把文件裡已定義、或讀者一定認得的詞判成未定義）：在檔案中加 <!-- prose-check: ignore 詞1, 詞2 -->。
+  真的沒定義的代號不能用 ignore 過關；要長期放行的詞，登錄到 allow_terms 或 known_terms。
+- 檔案裡還有【待補】時，回報給使用者要逐項列出，不得說文件已完成。
+文件屬於 skills/ 或 docs/ 時，修完後向使用者提議用 prose-review skill 做冷讀者理解測試（交給只拿到文件、看不到對話的 agent 讀）；使用者同意再跑。"""
 
 
 def render(path: str, findings: list[Finding], cap: int) -> str:
@@ -427,9 +429,9 @@ def run_cli(args: list[str]) -> int:
 CONSOLE_RULES = """[reader-based-prose] 給人看的文字（回覆、摘要、報告、文件）遵守以下規則：
 1. 不為選項、原因、段落臨時取代號（方案 B、根因 B、T1～T4）。使用者沒用過的代號，不要在後續回覆中引用；需要引用時，寫出內容本身。
 2. 不引用前一則回覆的章節編號（依 4.1）；直接寫出被引用的內容。
-3. 代號首次出現就定義。業界通用縮寫（API、SQL、PR）除外。
+3. 有定義來源（glossary、規則檔）的代號，首次出現就定義。業界通用縮寫（內建清單加上 allow_terms）除外。規則 1 優先：臨時取的代號，定義了也不用。
 4. 日常詞不賦予私有意思；兩個概念的名稱要能區分。
-5. 表格每格一眼讀完，細節放表格下方。
+5. 表格每格不超過 max_cell_chars 字（預設 40），細節放表格下方。
 6. 不知道代號意思就標【待補】並詢問，不自己編定義。"""
 
 
@@ -450,6 +452,9 @@ def run_session_start() -> int:
         out.append(f"\n本 repo 的 glossary：{'、'.join(files)}。已登錄的詞：{listed}{more}。"
                    "寫作時優先使用這些詞，不另取同義的新詞；需要定義時讀 glossary 檔。"
                    "要長期使用的新詞，先登錄進 glossary 並附來源，再引用。")
+    elif not missing:
+        how = "自動搜尋已關閉" if not cfg.get("glossary_autodiscover", True) else "自動搜尋沒找到"
+        out.append(f"\n本 repo 沒有找到 glossary（glossary_files 未設定，{how}）。寫作時只能靠文件內的定義。")
     for g in missing:
         out.append(f"\n注意：設定檔指定的 glossary {g} 不存在。")
     print("\n".join(out))

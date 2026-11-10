@@ -14,7 +14,7 @@
 作者本位文字（writer-based prose）把作者的思考過程原樣交出，使用對作者有意義、對讀者沒有意義的代號詞。好的寫作要把它轉換成讀者本位文字（reader-based prose）。
 
 **Pinker, S. (2014). *The Sense of Style*, Ch. 3 "The Curse of Knowledge".**
-知識的詛咒：作者難以想像別人不知道自己知道的事。成因是 chunking（把概念打包成縮寫）與 functional fixity（以用途而非本質描述事物）。解方是從真實讀者取得回饋訊號；本 plugin 的冷讀者測試即依此設計。
+知識的詛咒：作者難以想像別人不知道自己知道的事。成因是 chunking（把概念打包成縮寫）與 functional fixity（以用途而非本質描述事物）。解方是從真實讀者取得回饋訊號；本 plugin 的冷讀者測試（交給只拿到文件、看不到寫作對話的讀者讀）即依此設計。
 
 **Gopen, G. D., & Swan, J. A. (1990). The Science of Scientific Writing. *American Scientist*, 78(6), 550–558.**
 句首（topic position）放連回前文的舊資訊，句尾（stress position）放要強調的新資訊。句中完全沒有舊資訊時，讀者必須自己建構邏輯連結。

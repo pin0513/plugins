@@ -1,6 +1,6 @@
 ---
 name: cold-reader
-description: 不帶任何對話脈絡的冷讀者。只讀指定文件，用自己的話複述每個名詞與段落，回報讀不懂、可能讀錯、或兩個詞意思重疊的地方。prose-review skill 在第二階段與第三階段呼叫它。
+description: 不帶任何對話脈絡的冷讀者（只拿到文件、看不到寫作對話的讀者；對照的是看得到對話的作者本人）。只讀指定文件，用自己的話複述每個名詞與段落，回報讀不懂、可能讀錯、或兩個詞意思重疊的地方。prose-review skill 在第二階段與第三階段呼叫它。
 
 <example>
 Context: prose-review 正在審一份 SKILL.md
