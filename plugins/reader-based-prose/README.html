@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reader-based-prose：讓 AI 寫給人看的文字讀得懂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --paper: #F6F7F9;
+  --panel: #FFFFFF;
+  --ink: #1B2230;
+  --muted: #5A6375;
+  --rule: #D8DCE3;
+  --code-bg: #EDEFF3;
+  --link: #2F48C4;
+  --mark-bg: #FCE7A2;
+  --mark-ink: #3A2E00;
+  --broken: #B42318;
+  --misread: #6D3FC0;
+  --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #11151C;
+    --panel: #181D26;
+    --ink: #E5E8EE;
+    --muted: #9BA4B4;
+    --rule: #2B323E;
+    --code-bg: #1C222C;
+    --link: #93A4FF;
+    --mark-bg: #5E4D0F;
+    --mark-ink: #FFF2C2;
+    --broken: #FF8B7B;
+    --misread: #C6A8FF;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.9;
+}
+main { padding: 4rem 1.5rem 6rem; max-width: 72rem; margin: 0 auto; }
+.col { max-width: 44rem; }
+.wide { max-width: 72rem; }
+
+h1 {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.25rem;
+}
+h2 {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 1.75rem;
+  line-height: 1.35;
+  margin: 4.5rem 0 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--ink);
+}
+h3 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin: 2.5rem 0 0.5rem;
+}
+p { margin: 0 0 1.1rem; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 40rem; }
+a { color: var(--link); }
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+pre {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  background: var(--code-bg);
+  padding: 1rem 1.25rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0 0 1.25rem;
+}
+pre code { background: none; padding: 0; }
+
+/* 一般表格 */
+.tbl { overflow-x: auto; margin: 0 0 1.5rem; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+th { font-weight: 700; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+
+/* 案例表：讀者手上的那張表 */
+.specimen {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.25rem;
+  margin: 2rem 0 0;
+}
+.specimen table { min-width: 52rem; font-size: 0.95rem; }
+.specimen td:first-child, .specimen th:first-child {
+  position: sticky; left: 0; z-index: 1;
+  background: var(--panel);
+  font-weight: 700; white-space: nowrap;
+  box-shadow: 1px 0 0 var(--rule);
+}
+
+.term {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0 0.1em;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.term.lookup { background: var(--mark-bg); color: var(--mark-ink); }
+.term.missing {
+  text-decoration: underline wavy var(--broken);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+.term.misread {
+  text-decoration: underline dotted var(--misread);
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 5px;
+}
+.term[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+.term:focus-visible, a:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+.legend span.sample { color: var(--ink); margin-right: 0.4rem; }
+.count {
+  font-family: var(--sans);
+  font-size: 1rem;
+  margin: 0 0 1rem;
+}
+
+.panel {
+  font-family: var(--sans);
+  border-top: 1px solid var(--rule);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  min-height: 7.5rem;
+}
+.panel .hint { color: var(--muted); }
+.panel .name { font-family: var(--serif); font-weight: 900; font-size: 1.35rem; margin: 0 0 0.5rem; }
+.panel dl { margin: 0; display: grid; grid-template-columns: 7.5rem 1fr; gap: 0.35rem 1rem; }
+.panel dt { color: var(--muted); }
+.panel dd { margin: 0; }
+.panel .none { color: var(--broken); font-weight: 700; }
+@media (max-width: 36rem) {
+  .panel dl { grid-template-columns: 1fr; }
+  .panel dd { margin-bottom: 0.5rem; }
+}
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 0 0 1.5rem; }
+.two > div { border-top: 3px solid var(--rule); padding-top: 0.75rem; }
+.two h4 { font-family: var(--sans); font-size: 1rem; margin: 0 0 0.5rem; }
+.two p { font-family: var(--sans); font-size: 0.95rem; line-height: 1.7; }
+@media (max-width: 40rem) { .two { grid-template-columns: 1fr; } }
+
+
+/* 設計理念 */
+.group { margin: 2.5rem 0 0; }
+.principle { margin: 0 0 1.25rem; padding-left: 1rem; border-left: 3px solid var(--rule); }
+.principle strong { font-weight: 900; }
+
+/* 流程圖 */
+.diagram { overflow-x: auto; margin: 1.5rem 0 1.5rem; }
+.diagram svg { display: block; width: 100%; min-width: 40rem; height: auto; }
+.dg rect.box { fill: var(--panel); stroke: var(--rule); stroke-width: 1.5; }
+.dg .t { font: 700 15px var(--sans); fill: var(--ink); }
+.dg .s { font: 13px var(--sans); fill: var(--muted); }
+.dg .tag { font: 12px var(--sans); fill: var(--muted); }
+.dg .ln { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.dg .loop { stroke: var(--link); stroke-width: 2; fill: none; }
+.dg .lab { font: 13px var(--sans); fill: var(--muted); }
+.dg .ll { font: 700 13px var(--sans); fill: var(--link); }
+.dg .head-ink { fill: var(--ink); }
+.dg .head-link { fill: var(--link); }
+
+/* 三個階段 */
+.stages { list-style: none; padding: 0; margin: 1rem 0 1.5rem; font-family: var(--sans); font-size: 0.95rem; line-height: 1.7; }
+.stages li { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--rule); }
+.stages li b { font-weight: 700; }
+.stages .gate { color: var(--muted); }
+@media (max-width: 36rem) { .stages li { grid-template-columns: 1fr; gap: 0.25rem; } }
+
+/* 裁決階梯 */
+.ladder { font-family: var(--sans); font-size: 0.95rem; line-height: 1.6; margin: 1rem 0 1.5rem; }
+.ladder .row { display: grid; grid-template-columns: minmax(11rem, 1fr) 3.5rem minmax(13rem, 1.4fr); align-items: center; }
+.ladder .q { border: 1.5px solid var(--ink); border-radius: 4px; padding: 0.5rem 0.75rem; background: var(--panel); }
+.ladder .yes { text-align: center; color: var(--muted); }
+.ladder .yes::after { content: " ▶"; color: var(--ink); }
+.ladder .a { padding: 0.5rem 0; }
+.ladder .no { padding: 0.15rem 0 0.15rem 1.25rem; color: var(--muted); border-left: 1.5px solid var(--ink); margin-left: 1.25rem; font-size: 0.85rem; }
+.ladder .last .q { border-style: dashed; }
+@media (max-width: 36rem) {
+  .ladder .row { grid-template-columns: 3rem 1fr; }
+  .ladder .q { grid-column: 1 / -1; }
+  .ladder .yes { text-align: left; padding-left: 0.75rem; }
+  .ladder .a { padding: 0.4rem 0; }
+}
+
+footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margin-top: 5rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel-body { animation: show 160ms ease-out; }
+  @keyframes show { from { opacity: 0; } to { opacity: 1; } }
+}
+</style>
+</head>
+<body>
+<main>
+
+<header class="col">
+  <h1>讀者手上只有這張表</h1>
+  <p class="lede">reader-based-prose 是一個 Claude Code plugin。它讓 AI 寫給人看的文字，不用查詢、不用看對話紀錄就能讀懂，同時不遺失細節。</p>
+  <p>下面這張表是 AI 在一個 session 中產出的，用來說明團隊流程和 <code>SDD</code> 的差異，內容原文照錄。點選表格中標記的詞，看讀者能去哪裡查。</p>
+</header>
+
+<section class="wide specimen" aria-labelledby="specimen-title">
+  <h3 id="specimen-title" style="margin-top:0">案例：一張比較表</h3>
+  <div class="legend" aria-hidden="true">
+    <span><span class="sample term lookup">詞</span>要跳到另一張表查</span>
+    <span><span class="sample term missing">詞</span>查了也找不到</span>
+    <span><span class="sample term misread">詞</span>看似看得懂，其實會讀錯</span>
+  </div>
+  <p class="count" id="count"></p>
+  <div class="tbl">
+    <table>
+      <thead>
+        <tr><th>面向</th><th><button class="term missing" data-k="sdd">SDD</button></th><th>我們</th><th>為什麼需要</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>經濟面</td>
+          <td>沒有估工、沒有預算</td>
+          <td>結算單：<button class="term lookup" data-k="p50">P50</button>、<button class="term misread" data-k="upper">上限</button>、<button class="term lookup" data-k="budget">BUDGET-1 三問</button></td>
+          <td>規格同時是一份有價格的合約，PM 要能說「做」或「不做」</td>
+        </tr>
+        <tr>
+          <td>決策權</td>
+          <td>關卡是品質檢查清單</td>
+          <td><button class="term lookup" data-k="g1">G1 合意</button>、<button class="term lookup" data-k="g2">G2 授權</button>；分技術型與業務型決策，誰決定都寫清楚</td>
+          <td>決策權不外包給 AI（<button class="term missing" data-k="c1">判準 ①</button>）</td>
+        </tr>
+        <tr>
+          <td>風險</td>
+          <td>沒有風險模型</td>
+          <td><button class="term lookup" data-k="q">Q1～Q4</button>、<button class="term misread" data-k="undecided">未判定</button>、做的人與承擔的人分開；<button class="term missing" data-k="apollo">Apollo</button> 另有 <button class="term misread" data-k="circle">⚪</button> <button class="term misread" data-k="undecided">未判定</button>與<button class="term lookup" data-k="drift">程式碼漂移</button>比對</td>
+          <td>規格寫得再好，也擋不住「沒想到的事」</td>
+        </tr>
+        <tr>
+          <td>學習迴路</td>
+          <td>每個功能各做各的</td>
+          <td><button class="term lookup" data-k="prior">前例發現回顧</button>（<button class="term lookup" data-k="no17">No.17 的 F-xx</button> 帶到 <button class="term missing" data-k="no21">No.21</button>）、<button class="term missing" data-k="devreport">dev-report</button>、<button class="term missing" data-k="backtest">回測</button></td>
+          <td>重複型工作才有同型實測可以用</td>
+        </tr>
+        <tr>
+          <td>證據釘住</td>
+          <td>規格是一般文字</td>
+          <td>規格書 sha256 版本鎖、<button class="term missing" data-k="fileline">檔:行</button>、commit 基準</td>
+          <td>規格和程式碼會各自變動，要能證明比對的是同一版</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel" id="panel" aria-live="polite">
+    <p class="hint">點選表格中標記的詞。</p>
+  </div>
+</section>
+
+<article class="col">
+
+<p style="margin-top:2.5rem">表格只有五列，讀者卻要查十幾個詞才讀得完。「經濟面」那一格不到二十個字，就有三個要查的詞。連表頭的 <code>SDD</code> 都沒有說明全名。</p>
+
+<h3>補了名詞表之後，問題反而更清楚</h3>
+<p>讀者看不懂，於是請 AI 補一張名詞表。上面點選後顯示的「名詞表怎麼寫」，就是那張名詞表的內容。它本身暴露出六個問題：</p>
+<div class="tbl"><table>
+  <thead><tr><th>問題</th><th>名詞表裡的證據</th><th>讀者的後果</th></tr></thead>
+  <tbody>
+    <tr><td>定義留在對話裡</td><td>註明 <code>本次對話自創</code></td><td>讀者沒有地方可查</td></tr>
+    <tr><td>日常詞帶私有意思</td><td><code>上限</code> 指風險全發生時的時數</td><td>讀錯了也不會察覺</td></tr>
+    <tr><td>兩個詞指涉重疊</td><td><code>未判定</code> 與 <code>⚪</code></td><td>兩件事被讀成一件</td></tr>
+    <tr><td>範例需要解碼</td><td><code>No.17 的 F-xx</code> 要查三層</td><td>範例反而更難懂</td></tr>
+    <tr><td>名詞表有漏</td><td><code>SDD</code>、<code>dev-report</code>、<code>回測</code> 沒列</td><td>AI 自列的表不可靠</td></tr>
+    <tr><td>定義和使用分開</td><td>名詞表是另一張表</td><td>每讀一格就要跳一次</td></tr>
+  </tbody>
+</table></div>
+<p>第二與第三個問題最危險。遇到代號，讀者至少會停下來查；遇到「上限」這種日常詞，讀者會照日常意思理解，而且不知道自己讀錯了。<code>未判定</code> 指的是「還不知道會不會發生」，<code>⚪</code> 指的是「還不知道有多嚴重」，原表卻把兩者寫成同一個詞組。</p>
+
+<h3>為什麼 AI 特別容易這樣寫</h3>
+<pre><code> 模型的 context（看得到）             讀者手上的文件（看不到）
+┌──────────────────────────┐        ┌──────────────────────────┐
+│ 對話中取的代號 Q1～Q4      │        │                          │
+│ 計畫裡的 BUDGET-1          │──寫出──▶│ 「Q1～Q4、未判定」         │
+│ 前面回合定義的「未判定」   │        │     ↑ 定義沒跟著進來      │
+└──────────────────────────┘        └──────────────────────────┘</code></pre>
+<p>模型寫作時，context 裡有對話、計畫與子任務回報，這些內容讀者都看不到。代號的定義留在對話裡，文件只帶走代號。寫作研究稱這種文字為作者本位文字（writer-based prose，Flower 1979）：作者把自己的思考過程原樣交出，使用只對自己有意義的代號詞。名詞表上的 <code>本次對話自創</code> 是這個機制的直接證據。</p>
+
+<h3>修正也會失敗</h3>
+<p>最直覺的修法是把定義全部塞回表格。這樣每一格都讀得懂了，但表格失去比較功能：</p>
+<div class="two">
+  <div>
+    <h4>定義壓縮成代號</h4>
+    <p>結算單：P50、上限、BUDGET-1 三問</p>
+    <p style="color:var(--muted)">格子短，但讀不懂。</p>
+  </div>
+  <div>
+    <h4>定義塞回格子</h4>
+    <p>每份規格附結算單：中位數估計時數（P50，有一半機會在這個時數內完成）、最壞情況時數（估工檔列出的風險全部發生時），以及開工前和 PM 對齊預算的三個問題（團隊規則 BUDGET-1）</p>
+    <p style="color:var(--muted)">讀得懂，但無法比較。</p>
+  </div>
+</div>
+<p>所以問題不在代號多寡，而在代號與定義放錯地方。這個 plugin 不是「刪代號」的工具：它依每個詞的定義來源決定保留、加註或改寫，並把比較和解釋分成兩層。</p>
+
+<h3>同樣的問題也出現在對話回覆</h3>
+<p>給人看的回覆也會這樣寫。例如一則回覆寫著 <code>直接證實了上一輪的根因 B</code>：<code>根因 B</code> 是 AI 在前一則回覆裡自己取的代號，讀者只能往上捲去找。回覆的讀者雖然在對話裡，但人的記憶不像模型的 context 那樣完整：掃讀過、切去別的工作、隔幾小時才回來。</p>
+
+<h2>設計理念</h2>
+<p>九條原則分成四組。每一條都附上在 plugin 裡的做法，以及它從哪個失敗學來。</p>
+
+<div class="group">
+<h3>判準：讀者能不能讀懂</h3>
+<p class="principle"><strong>讀者只拿到文件。</strong>讀者能用的資源是文件本身、名詞表、可開啟的連結；不包括寫作當時的對話。所以冷讀者只拿得到檔案路徑與名詞表路徑，拿不到任何背景說明。附上背景，冷讀者就和作者一樣知道太多，測試失效。</p>
+<p class="principle"><strong>要降低的是推論量，不是資訊量。</strong>把定義塞回表格，資訊都在，卻失去比較功能。所以 plugin 不刪代號，而是依來源決定保留、加註或改寫，並把比較和解釋分成兩層。</p>
+</div>
+
+<div class="group">
+<h3>修正：依定義的來源決定</h3>
+<p class="principle"><strong>加註的前提是可回溯的來源。</strong>對話中自創的代號，加註也只是指向讀者打不開的地方。所以只存在對話的代號必須改寫，或先登錄進名詞表再引用；<code>known_terms</code> 登錄的路徑必須存在；名詞表的條目要附來源。</p>
+<p class="principle"><strong>不知道就標【待補】。</strong>替代號編一個看似合理的定義，比留白更危險，因為讀者無從察覺它是猜的。所以 plugin 遇到不懂的代號，只標【待補】並詢問使用者。</p>
+</div>
+
+<div class="group">
+<h3>檢查：便宜的先做，昂貴的只在必要時做</h3>
+<p class="principle"><strong>規則判得出的，不靠實測。</strong>早期設計對每個代號都做「保留與改寫」兩版比較，套到實際案例後才發現，決定裁決的幾乎都是定義來源，比較測試沒有發揮作用，還看不到格子過長這類問題。所以版本比較只用在決策表判不出的情況，以及離線校準規則。</p>
+<p class="principle"><strong>規則抓不到的，交給看不到對話的讀者。</strong>「上限」這類日常詞的私有意思，規則比對抓不到。所以第二階段讓冷讀者用自己的話複述每個詞，再和作者原意比對。</p>
+</div>
+
+<div class="group">
+<h3>介入：不製造新的混亂</h3>
+<p class="principle"><strong>已經顯示的文字不阻擋，只記錄。</strong>回覆已經出現在畫面上，阻擋只會讓 Claude 在後面再補一段更正。所以文件檢查會回饋給 Claude 修正，因為檔案還能改；回覆檢查只寫紀錄，定期彙整後再回頭補進預防規則。</p>
+<p class="principle"><strong>輔助資源是選用的。</strong>不是每個 repo 都有名詞表。所以找不到名詞表就略過，只有設定檔明確指定、檔案卻不存在時才回報。</p>
+<p class="principle"><strong>自己的文件要通過自己的檢查。</strong>用 plugin 檢查它自己的文件，抓到了 checker 把範例中的指令當成真指令的 bug，也抓到了作者本人寫出過長的表格格子。所以每次修改都要重跑檢查與測試，<code>evals/fixtures</code> 的正負樣本是規則的回歸測試。</p>
+</div>
+
+<h2>Workflow</h2>
+<h3>整體流程</h3>
+<div class="diagram">
+<svg class="dg" viewBox="0 0 760 520" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">reader-based-prose 整體流程</title>
+  <desc id="flow-desc">Session 開始時注入規則，Claude 寫作後分成兩條路：寫入檔案走文件檢查，有發現就回饋修正再寫入；給人看的回覆走回覆檢查，只寫紀錄，定期彙整後把高頻代號登錄名詞表，回到下一個 session 開始。</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="head-ink" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="al" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="head-link" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="box" x="80" y="20" width="380" height="60" rx="4"/>
+  <text class="t" x="96" y="46">Session 開始</text>
+  <text class="s" x="96" y="68">注入預防規則與名詞表詞彙清單</text>
+  <text class="tag" x="448" y="40" text-anchor="end">hook</text>
+
+  <rect class="box" x="80" y="120" width="380" height="60" rx="4"/>
+  <text class="t" x="96" y="146">Claude 寫作</text>
+  <text class="s" x="96" y="168">依寫作規則預防問題</text>
+  <text class="tag" x="448" y="140" text-anchor="end">skill</text>
+
+  <rect class="box" x="80" y="220" width="380" height="60" rx="4"/>
+  <text class="t" x="96" y="246">寫入 Markdown 檔</text>
+  <text class="s" x="96" y="268">文件檢查</text>
+  <text class="tag" x="448" y="240" text-anchor="end">hook</text>
+
+  <rect class="box" x="80" y="340" width="380" height="60" rx="4"/>
+  <text class="t" x="96" y="366">skills/、docs/ 的文件</text>
+  <text class="s" x="96" y="388">prose-review 三階段審查</text>
+  <text class="tag" x="448" y="360" text-anchor="end">skill、agent</text>
+
+  <rect class="box" x="80" y="440" width="380" height="60" rx="4"/>
+  <text class="t" x="96" y="466">回報給使用者</text>
+  <text class="s" x="96" y="488">每個詞的裁決、依據的規則、待補清單</text>
+
+  <rect class="box" x="520" y="220" width="220" height="60" rx="4"/>
+  <text class="t" x="536" y="246">回覆給人看</text>
+  <text class="s" x="536" y="268">回覆檢查，只寫紀錄</text>
+  <text class="tag" x="728" y="240" text-anchor="end">hook</text>
+
+  <rect class="box" x="520" y="340" width="220" height="60" rx="4"/>
+  <text class="t" x="536" y="366">定期彙整</text>
+  <text class="s" x="536" y="388">找出高頻出現的代號</text>
+
+  <line class="ln" x1="270" y1="80" x2="270" y2="118" marker-end="url(#ah)"/>
+  <line class="ln" x1="270" y1="180" x2="270" y2="218" marker-end="url(#ah)"/>
+  <path class="ln" d="M460,150 H630 V218" marker-end="url(#ah)"/>
+  <text class="lab" x="545" y="142">回覆</text>
+  <line class="ln" x1="270" y1="280" x2="270" y2="338" marker-end="url(#ah)"/>
+  <text class="lab" x="282" y="315">沒有發現</text>
+  <line class="ln" x1="270" y1="400" x2="270" y2="438" marker-end="url(#ah)"/>
+  <line class="ln" x1="630" y1="280" x2="630" y2="338" marker-end="url(#ah)"/>
+
+  <path class="loop" d="M80,250 H44 V150 H78" marker-end="url(#al)"/>
+  <text class="ll" x="30" y="200" text-anchor="middle" transform="rotate(-90 30 200)">有發現：回饋修正</text>
+
+  <path class="loop" d="M740,370 H752 V50 H462" marker-end="url(#al)"/>
+  <text class="ll" x="606" y="40" text-anchor="middle">高頻代號登錄名詞表、補進預防規則</text>
+</svg>
+</div>
+<p>流程裡有兩個迴圈，以強調色標示。內圈在單一檔案上運作：寫入、檢查、修正、再寫入，直到沒有發現。外圈跨 session 運作：回覆檢查的紀錄經過彙整，把高頻出現的代號登錄進名詞表、補進預防規則，下一個 session 開始時就會注入。</p>
+
+<h3>prose-review 的三個階段</h3>
+<ol class="stages">
+  <li><b>第一階段：規則比對</b><span>列出代號、對話殘留、過長格子。</span></li>
+  <li><b>第二階段：冷讀者複述</b><span>冷讀者只拿到檔案與名詞表路徑，用自己的話複述每個詞；和作者原意比對，找出私有意思與術語碰撞。</span></li>
+  <li><b class="gate">決策表判得出？</b><span>判得出就直接裁決，並附上依據的規則；判不出才進入第三階段。</span></li>
+  <li><b>第三階段：版本比較</b><span>冷讀者比較「保留代號加註」與「改寫成白話」兩個版本。</span></li>
+</ol>
+
+<h3>每個代號怎麼裁決</h3>
+<div class="ladder" role="list">
+  <div class="row" role="listitem"><div class="q">使用者用過，或在名詞表裡？</div><div class="yes">是</div><div class="a">放行；會離開 repo 的文字補一句白話</div></div>
+  <div class="no">否</div>
+  <div class="row" role="listitem"><div class="q">業界通用？</div><div class="yes">是</div><div class="a">保留，首次出現時加括號說明</div></div>
+  <div class="no">否</div>
+  <div class="row" role="listitem"><div class="q">團隊規則檔有定義？</div><div class="yes">是</div><div class="a">保留代號當索引，同時寫出內容</div></div>
+  <div class="no">否</div>
+  <div class="row" role="listitem"><div class="q">只存在對話？</div><div class="yes">是</div><div class="a">改寫成白話，或先登錄名詞表再引用</div></div>
+  <div class="no">否</div>
+  <div class="row last" role="listitem"><div class="q">不知道意思</div><div class="yes"></div><div class="a">標【待補】，詢問使用者</div></div>
+</div>
+<p>裁決順序就是檢查成本的順序：先查名詞表與使用者用詞，最後才需要人介入。</p>
+
+<h2>這個 plugin 處理什麼</h2>
+<div class="tbl"><table>
+  <thead><tr><th>案例中的問題</th><th>負責的機制</th><th>時機</th></tr></thead>
+  <tbody>
+    <tr><td>代號沒有定義</td><td>文件檢查</td><td>寫入檔案後</td></tr>
+    <tr><td>定義留在對話裡</td><td>預防規則、文件檢查</td><td>寫作前、寫入後</td></tr>
+    <tr><td>名詞表有漏</td><td>文件檢查</td><td>寫入後</td></tr>
+    <tr><td>格子塞太滿</td><td>文件檢查</td><td>寫入後</td></tr>
+    <tr><td>日常詞帶私有意思</td><td>冷讀者理解測試</td><td>執行審查時</td></tr>
+    <tr><td>兩個詞指涉重疊</td><td>冷讀者、名詞表選詞</td><td>寫作前、審查時</td></tr>
+    <tr><td>範例需要解碼</td><td>冷讀者理解測試</td><td>執行審查時</td></tr>
+    <tr><td>定義和使用分開</td><td>兩層結構規則</td><td>寫作時、審查時</td></tr>
+    <tr><td>回覆裡的自創代號</td><td>回覆檢查</td><td>每次回覆結束</td></tr>
+  </tbody>
+</table></div>
+<p>規則比對抓得到代號，抓不到日常詞的私有意思，所以需要冷讀者：一個只拿到文件、看不到對話的讀者，用自己的話複述每個詞，再和作者原意比對。</p>
+
+<h3>不處理什麼</h3>
+<div class="tbl"><table>
+  <thead><tr><th>範圍外</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>AI 腔（空話、制式句型）</td><td>已有其他工具處理</td></tr>
+    <tr><td>內容是否正確</td><td>只檢查讀不讀得懂</td></tr>
+    <tr><td>文字是否優美</td><td>目標是讀懂，不是好看</td></tr>
+  </tbody>
+</table></div>
+
+<h3>成功的樣子</h3>
+<p>讀者拿到文件，不用查詢、不用看對話紀錄就能讀懂，細節也沒有遺失。要壓低的是讀者必須自行重建的推論量，不是資訊量。可量測的指標有兩個：每千字的未定義代號數，以及冷讀者的理解正確率。</p>
+
+<h2>元件</h2>
+<div class="tbl"><table>
+  <thead><tr><th>元件</th><th>類型</th><th>作用</th></tr></thead>
+  <tbody>
+    <tr><td>文件檢查</td><td>hook，寫入 Markdown 後</td><td>抓代號、對話殘留、格子過長</td></tr>
+    <tr><td>寫作規則注入</td><td>hook，session 開始時</td><td>注入預防規則與名詞表詞彙</td></tr>
+    <tr><td>回覆檢查</td><td>hook，每次回覆結束</td><td>檢查回覆，只寫紀錄、不阻擋</td></tr>
+    <tr><td><code>writing-reader-based-prose</code></td><td>skill，寫文件時自動載入</td><td>在寫作當下預防問題</td></tr>
+    <tr><td><code>prose-review</code></td><td>skill，使用者呼叫</td><td>三階段審查</td></tr>
+    <tr><td><code>cold-reader</code></td><td>agent</td><td>不帶對話脈絡的讀者</td></tr>
+  </tbody>
+</table></div>
+<p>文件檢查有發現時，會把問題與處理方式回饋給 Claude，由 Claude 自行修正。</p>
+
+<h3>三個階段各抓什麼</h3>
+<div class="tbl"><table>
+  <thead><tr><th>階段</th><th>方法</th><th>抓得到</th><th>抓不到</th></tr></thead>
+  <tbody>
+    <tr><td>第一階段</td><td>規則比對，hook 自動執行</td><td>代號、對話殘留、格子過長</td><td>私有意思、術語碰撞</td></tr>
+    <tr><td>第二階段</td><td>冷讀者複述，與原意比對</td><td>私有意思、術語碰撞、跳躍</td><td>—</td></tr>
+    <tr><td>第三階段</td><td>冷讀者比較兩個版本</td><td>規則判不出的保留或刪除</td><td>只在必要時使用</td></tr>
+  </tbody>
+</table></div>
+<p>第一階段辨識的代號樣式：大寫加數字（<code>P50</code>、<code>BUDGET-1</code>）、範圍（<code>Q1～Q4</code>）、全大寫縮寫（<code>SDD</code>）、編號（<code>No.17</code>）、圈號（<code>判準 ①</code>）、狀態符號（<code>⚪</code>），以及「方案、根因、選項」等固定前綴接單一大寫字母（<code>方案 B</code>）。</p>
+
+<h2>名詞表（選用）</h2>
+<p>repo 裡有名詞表（glossary）時，plugin 把它當成讀者打得開的定義來源；沒有時略過，不報錯。</p>
+<div class="tbl"><table>
+  <thead><tr><th>情況</th><th>行為</th></tr></thead>
+  <tbody>
+    <tr><td>自動搜尋到名詞表</td><td>裡面的詞視為已定義，並注入詞彙清單</td></tr>
+    <tr><td>找不到名詞表</td><td>略過，其餘檢查照常</td></tr>
+    <tr><td>設定檔指定的名詞表不存在</td><td>回報，因為這代表設定寫錯</td></tr>
+    <tr><td>名詞表有來源欄，條目沒填</td><td>編輯名詞表時回報</td></tr>
+  </tbody>
+</table></div>
+<p>詞彙清單在 session 開始時注入 context，引導 Claude 使用既有的詞，不另取同義詞。要長期使用的新詞，先登錄進名詞表並附來源，再在文件中引用。</p>
+<p>自動搜尋的檔名或目錄名（不分大小寫）：<code>glossary</code>、<code>terms</code>、<code>terminology</code>、<code>ubiquitous-language</code>、<code>名詞</code>、<code>名詞表</code>、<code>名詞庫</code>、<code>詞彙</code>、<code>詞彙表</code>、<code>術語</code>、<code>術語表</code>。搜尋深度四層，略過 <code>.git</code>、<code>node_modules</code>、<code>bin</code>、<code>obj</code> 等建置目錄。支援三種條目格式：表格第一欄、<code>- **詞**：定義</code>、<code>### 詞</code> 標題。</p>
+
+<h2>回覆檢查</h2>
+<p>回覆的判準不是「有沒有定義」，而是「代號是誰提出的」：</p>
+<div class="tbl"><table>
+  <thead><tr><th>代號來源</th><th>判定</th></tr></thead>
+  <tbody>
+    <tr><td>使用者用過的詞、名詞表的詞</td><td>放行</td></tr>
+    <tr><td>模型提出、這則回覆有定義</td><td>放行</td></tr>
+    <tr><td>模型提出、這則回覆沒定義</td><td>記為模型自創代號</td></tr>
+    <tr><td>引用這則回覆裡沒有的章節編號</td><td>記為跨回合引用</td></tr>
+  </tbody>
+</table></div>
+<p>範例：<code>根因 B</code> 屬於第三列，<code>依 4.1</code> 屬於第四列。</p>
+<p>回覆已經顯示在畫面上，阻擋只會讓 Claude 在後面再補一段更正，所以只寫紀錄到 <code>.prose-check/console-log.jsonl</code>。定期執行 <code>python3 scripts/prose_check.py --report</code> 查看高頻問題，再把高頻的詞登錄進名詞表，或補進預防規則。</p>
+
+<h2>需求與設定</h2>
+<p>Python 3.9 以上，不需要額外套件。在專案根目錄放 <code>.prose-check.json</code>（全部欄位都可省略）：</p>
+<pre><code>{
+  "mode": "feedback",
+  "include": ["**/skills/**/*.md", "**/docs/**/*.md"],
+  "exclude": ["**/CHANGELOG.md"],
+  "max_cell_chars": 40,
+  "allow_terms": ["MediatR"],
+  "known_terms": { "BUDGET-1": "docs/rules/budget.md" },
+  "glossary_files": [],
+  "console_mode": "log"
+}</code></pre>
+<div class="tbl"><table>
+  <thead><tr><th>欄位</th><th>作用</th></tr></thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td><code>feedback</code> 回饋給 Claude；<code>off</code> 停用</td></tr>
+    <tr><td><code>include</code>、<code>exclude</code></td><td>檢查範圍，相對於設定檔所在目錄</td></tr>
+    <tr><td><code>max_cell_chars</code></td><td>表格單格字數上限</td></tr>
+    <tr><td><code>allow_terms</code></td><td>讀者一定認得、不需要定義的詞</td></tr>
+    <tr><td><code>known_terms</code></td><td>規則檔中有定義的代號與來源路徑</td></tr>
+    <tr><td><code>glossary_files</code></td><td>指定名詞表路徑；空清單代表自動搜尋</td></tr>
+    <tr><td><code>glossary_autodiscover</code></td><td>設為 false 停用自動搜尋</td></tr>
+    <tr><td><code>console_mode</code></td><td><code>log</code> 寫回覆檢查紀錄；<code>off</code> 停用</td></tr>
+    <tr><td><code>console_log</code></td><td>紀錄檔路徑</td></tr>
+  </tbody>
+</table></div>
+<p><code>known_terms</code> 登錄的來源路徑不存在時會被回報。檔案內的指令：<code>&lt;!-- prose-check: ignore 詞1, 詞2 --&gt;</code> 忽略特定詞；<code>&lt;!-- prose-check: off --&gt;</code> 整份不檢查。環境變數 <code>PROSE_CHECK_DISABLE=1</code> 會暫停 hook。</p>
+
+<h2>手動執行與測試</h2>
+<pre><code>python3 scripts/prose_check.py docs/foo.md          # 人看的報告；有發現時 exit 1
+python3 scripts/prose_check.py docs/foo.md --json   # 結構化輸出
+python3 scripts/prose_check.py --report             # 彙整回覆檢查紀錄
+python3 -m unittest tests/test_prose_check.py       # 驗證規則</code></pre>
+<p><code>evals/fixtures</code> 有三份樣本：參照斷裂的表格、定義全塞進格子的表格、兩層結構的正面範例。調整規則前先在這裡加樣本。</p>
+
+<h2>已知限制</h2>
+<p>第一階段以規則比對，小寫的自創詞（例如 <code>dev-report</code>）抓不到，交給第二階段。「詞（說明）」與「說明（詞）」兩種寫法都視為已定義；說明內容是否正確，要靠第二階段確認。回覆檢查讀的是 transcript 檔；Claude Code 若改變 transcript 格式，這部分需要跟著調整。紀錄檔是否進版控由團隊決定；不想進版控就把 <code>.prose-check/</code> 加進 <code>.gitignore</code>。</p>
+
+<h2>文獻依據</h2>
+<p>Flower 1979（作者本位文字）、Pinker 2014（知識的詛咒）、Gopen 與 Swan 1990（句首放舊資訊、句尾放新資訊）。完整出處與各自的主張見 <code>skills/prose-review/references/principles.md</code>。</p>
+
+</article>
+
+<footer class="col">reader-based-prose 0.4.0。這份頁面與 README.md 內容相同。</footer>
+</main>
+
+<script>
+const TERMS = {
+  sdd:       { kind: "missing", gloss: null, problem: "名詞表沒列。表頭本身就需要查，讀者第一眼就卡住。" },
+  p50:       { kind: "lookup", gloss: "估計的中位數：照這個時數，有一半機會會做得完", problem: "定義在另一張表，每讀一格就要跳一次。" },
+  upper:     { kind: "misread", gloss: "估工檔列的風險全部發生時，總共要花的時數", problem: "日常詞帶私有意思。讀者會照一般的「上限」理解，而且不會察覺自己讀錯。" },
+  budget:    { kind: "lookup", gloss: "團隊規則：估工是為了和 PM 的時間預算對齊。三問是：對得上預算嗎？差距的原因雙方理解一致嗎？開工前還能先解決什麼？", problem: "有團隊規則可回溯。代號可以保留當索引，但三個問題要寫出來。" },
+  g1:        { kind: "lookup", gloss: "人逐項看過估工明細並同意", problem: "「合意」沒說同意的是什麼，要查名詞表才知道。" },
+  g2:        { kind: "lookup", gloss: "人授權開子卡、可以動工", problem: "定義在另一張表。" },
+  c1:        { kind: "missing", gloss: null, problem: "名詞表沒列。圈號代表某份清單的第一項，讀者需要那份清單，但不知道它在哪裡。" },
+  q:         { kind: "lookup", gloss: "本次對話自創：事實、反事實（不處理會怎樣）、可能性、干預（怎麼處理、誰負責）", problem: "名詞表註明這是在對話中自創的。離開那段對話，就沒有任何長期來源。" },
+  undecided: { kind: "misread", gloss: "本次對話自創：還沒查證「會不會發生」，所以不排優先順序", problem: "和 ⚪ 指涉重疊：「未判定」是不知道會不會發生，⚪ 是不知道有多嚴重，原表卻寫成「⚪ 未判定」。" },
+  apollo:    { kind: "missing", gloss: null, problem: "名詞表的「Apollo ⚪」條目只解釋了 ⚪，沒說明 Apollo 是什麼、為什麼單獨列出。" },
+  circle:    { kind: "misread", gloss: "這條風險還沒判定嚴重性", problem: "和「未判定」指涉重疊，兩件事被讀成一件。" },
+  drift:     { kind: "lookup", gloss: "分析時看的程式碼，到開工時已經被別人改過", problem: "定義在另一張表。" },
+  prior:     { kind: "lookup", gloss: "把前幾張同類表單施工時踩到的問題，逐條判斷這張會不會再踩", problem: "自創的複合詞，要查名詞表。" },
+  no17:      { kind: "lookup", gloss: "第 17 張標準表單（MAYOFORM-5733）的第 xx 條施工發現", problem: "範例本身要查三層：No.17、表單編號、F-xx。範例反而增加理解成本。" },
+  no21:      { kind: "missing", gloss: null, problem: "名詞表沒列，只能從 No.17 的寫法推測是第 21 張表單。" },
+  devreport: { kind: "missing", gloss: null, problem: "名詞表沒列。小寫的自創詞，規則比對也抓不到，只能靠冷讀者。" },
+  backtest:  { kind: "missing", gloss: null, problem: "名詞表沒列。讀者不知道「回測」在這裡指什麼。" },
+  fileline:  { kind: "missing", gloss: null, problem: "名詞表沒列。" }
+};
+const KIND_LABEL = { lookup: "要跳到另一張表查", missing: "查了也找不到", misread: "看似看得懂，其實會讀錯" };
+
+const counts = { lookup: 0, missing: 0, misread: 0 };
+Object.values(TERMS).forEach(t => counts[t.kind]++);
+const total = Object.keys(TERMS).length;
+document.getElementById("count").textContent =
+  `這張表裡有 ${total} 個讀者要查的詞：${counts.lookup} 個要跳到另一張表，${counts.missing} 個查了也找不到，${counts.misread} 個看似看得懂、其實會讀錯。`;
+
+const panel = document.getElementById("panel");
+const buttons = Array.from(document.querySelectorAll("button.term[data-k]"));
+
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function show(key, label) {
+  const t = TERMS[key];
+  buttons.forEach(b => b.setAttribute("aria-pressed", b.dataset.k === key ? "true" : "false"));
+  const gloss = t.gloss ? esc(t.gloss) : '<span class="none">名詞表沒有這個詞</span>';
+  panel.innerHTML = `<div class="panel-body">
+    <p class="name">${esc(label)}</p>
+    <dl>
+      <dt>名詞表怎麼寫</dt><dd>${gloss}</dd>
+      <dt>問題</dt><dd>${esc(t.problem)}</dd>
+      <dt>類型</dt><dd>${KIND_LABEL[t.kind]}</dd>
+    </dl></div>`;
+}
+
+buttons.forEach(b => {
+  b.setAttribute("aria-pressed", "false");
+  b.addEventListener("click", () => show(b.dataset.k, b.textContent));
+});
+</script>
+</body>
+</html>

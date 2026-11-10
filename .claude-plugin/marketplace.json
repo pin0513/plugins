@@ -1,0 +1,17 @@
+{
+  "name": "pin0513-plugins",
+  "description": "Paul 個人通用的 AI 工具市集，陸續收錄可在 Claude Code 安裝的 plugin。",
+  "owner": {
+    "name": "Paul",
+    "url": "https://github.com/pin0513"
+  },
+  "plugins": [
+    {
+      "name": "reader-based-prose",
+      "source": "./plugins/reader-based-prose",
+      "description": "檢查 AI 產出的文件是否有未定義代號、對話殘留、表格塞太滿，並以冷讀者確認能否讀懂。",
+      "version": "0.4.0",
+      "author": { "name": "Paul" }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "description": "寫入 Markdown 後檢查並回饋給 Claude；session 開始時注入寫作規則與 glossary 詞彙清單；回覆結束後檢查給人看的文字並寫紀錄。",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/prose_check.py\" --hook", "timeout": 30 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/prose_check.py\" --session-start", "timeout": 15 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/prose_check.py\" --stop", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}
