@@ -20,16 +20,16 @@ class LabelTable(unittest.TestCase):
         self.terms = {x.term for x in self.f if x.check == "未定義標籤"}
 
     def test_catches_codes(self):
-        for t in ["SDD", "P50", "BUDGET-1", "G1", "G2", "Q1～Q4", "判準①", "⚪", "No.17", "F-xx", "No.21"]:
+        for t in ["SDD", "P50", "XYZ-100", "ZZ1", "ZZ2", "T1～T4", "規則①", "⚪", "No.42", "Z-xx", "No.43", "ALPHA"]:
             self.assertIn(t, self.terms, t)
 
     def test_range_not_split(self):
-        self.assertNotIn("Q1", self.terms)
-        self.assertNotIn("Q4", self.terms)
+        self.assertNotIn("T1", self.terms)
+        self.assertNotIn("T4", self.terms)
 
     def test_glossary_after_use_does_not_count(self):
-        # Q1～Q4 在 glossary 才定義，但首次出現在表格裡，仍應被抓
-        self.assertIn("Q1～Q4", self.terms)
+        # T1～T4 在 glossary 才定義，但首次出現在表格裡，仍應被抓
+        self.assertIn("T1～T4", self.terms)
 
     def test_catches_conversation_leak(self):
         self.assertTrue(any(x.check == "對話殘留" for x in self.f))
@@ -137,39 +137,39 @@ GLOSSARY = """# 名詞表
 
 | 詞 | 定義 | 來源 |
 |---|---|---|
-| BUDGET-1 | 開工前和 PM 對齊預算的三個問題 | docs/rules/budget.md |
-| G1 | 人逐項看過估工明細並同意 | |
+| XYZ-100 | 開工前和 PM 對齊預算的三個問題 | docs/rules/budget.md |
+| ZZ1 | 人逐項看過估工明細並同意 | |
 """
 
 
 class Glossary(unittest.TestCase):
     def test_absent_glossary_is_optional(self):
         with tempfile.TemporaryDirectory() as d:
-            p = write(d, "docs/a.md", "依 BUDGET-1 處理。\n")
+            p = write(d, "docs/a.md", "依 XYZ-100 處理。\n")
             cfg, root = pc.load_config(d)
             f = pc.check_file(p, cfg, root)
-            self.assertEqual([(x.check, x.term) for x in f], [("未定義標籤", "BUDGET-1")])
+            self.assertEqual([(x.check, x.term) for x in f], [("未定義標籤", "XYZ-100")])
 
     def test_autodiscovered_glossary_defines_terms(self):
         with tempfile.TemporaryDirectory() as d:
             write(d, "docs/glossary.md", GLOSSARY)
-            p = write(d, "docs/a.md", "依 BUDGET-1 與 G1 處理，再看 Z9。\n")
+            p = write(d, "docs/a.md", "依 XYZ-100 與 ZZ1 處理，再看 Z9。\n")
             cfg, root = pc.load_config(d)
             self.assertEqual([x.term for x in pc.check_file(p, cfg, root)], ["Z9"])
 
     def test_chinese_glossary_name(self):
         with tempfile.TemporaryDirectory() as d:
             write(d, "docs/名詞表.md", GLOSSARY)
-            p = write(d, "a.md", "依 BUDGET-1 處理。\n")
+            p = write(d, "a.md", "依 XYZ-100 處理。\n")
             cfg, root = pc.load_config(d)
             self.assertEqual(pc.check_file(p, cfg, root), [])
 
     def test_glossary_in_skipped_dir_is_ignored(self):
         with tempfile.TemporaryDirectory() as d:
             write(d, "node_modules/x/glossary.md", GLOSSARY)
-            p = write(d, "a.md", "依 BUDGET-1 處理。\n")
+            p = write(d, "a.md", "依 XYZ-100 處理。\n")
             cfg, root = pc.load_config(d)
-            self.assertEqual([x.term for x in pc.check_file(p, cfg, root)], ["BUDGET-1"])
+            self.assertEqual([x.term for x in pc.check_file(p, cfg, root)], ["XYZ-100"])
 
     def test_configured_but_missing_glossary_is_reported(self):
         with tempfile.TemporaryDirectory() as d:
@@ -184,7 +184,7 @@ class Glossary(unittest.TestCase):
             g = write(d, "docs/glossary.md", GLOSSARY)
             cfg, root = pc.load_config(d)
             f = pc.check_file(g, cfg, root)
-            self.assertEqual([(x.check, x.term) for x in f], [("來源缺漏", "G1")])
+            self.assertEqual([(x.check, x.term) for x in f], [("來源缺漏", "ZZ1")])
 
     def test_definition_list_and_heading_formats(self):
         with tempfile.TemporaryDirectory() as d:
@@ -218,7 +218,7 @@ class SessionStart(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             write(d, "docs/glossary.md", GLOSSARY)
             r = self._run(d)
-            self.assertIn("BUDGET-1", r.stdout)
+            self.assertIn("XYZ-100", r.stdout)
             self.assertIn("docs/glossary.md", r.stdout)
 
 

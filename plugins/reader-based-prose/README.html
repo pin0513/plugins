@@ -254,7 +254,7 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
 <header class="col">
   <h1>讀者手上只有這張表</h1>
   <p class="lede">reader-based-prose 是一個 Claude Code plugin。它讓 AI 寫給人看的文字，不用查詢、不用看對話紀錄就能讀懂，同時不遺失細節。</p>
-  <p>下面這張表是 AI 在一個 session 中產出的，用來說明團隊流程和 <code>SDD</code> 的差異，內容原文照錄。點選表格中標記的詞，看讀者能去哪裡查。</p>
+  <p>下面這張表是 AI 在一個 session 中產出的，用來說明團隊流程和 <code>SDD</code> 的差異。下面保留原表的結構與問題，團隊專屬代號已換成中性說法。點選表格中標記的詞，看讀者能去哪裡查。</p>
 </header>
 
 <section class="wide specimen" aria-labelledby="specimen-title">
@@ -274,25 +274,25 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
         <tr>
           <td>經濟面</td>
           <td>沒有估工、沒有預算</td>
-          <td>結算單：<button class="term lookup" data-k="p50">P50</button>、<button class="term misread" data-k="upper">上限</button>、<button class="term lookup" data-k="budget">BUDGET-1 三問</button></td>
+          <td>結算單：<button class="term lookup" data-k="p50">P50</button>、<button class="term misread" data-k="upper">上限</button>、<button class="term lookup" data-k="budget">某項預算檢查</button></td>
           <td>規格同時是一份有價格的合約，PM 要能說「做」或「不做」</td>
         </tr>
         <tr>
           <td>決策權</td>
           <td>關卡是品質檢查清單</td>
-          <td><button class="term lookup" data-k="g1">G1 合意</button>、<button class="term lookup" data-k="g2">G2 授權</button>；分技術型與業務型決策，誰決定都寫清楚</td>
-          <td>決策權不外包給 AI（<button class="term missing" data-k="c1">判準 ①</button>）</td>
+          <td><button class="term lookup" data-k="g1">合意關卡</button>、<button class="term lookup" data-k="g2">授權關卡</button>；分技術型與業務型決策，誰決定都寫清楚</td>
+          <td>決策權不外包給 AI（<button class="term missing" data-k="c1">某項判準</button>）</td>
         </tr>
         <tr>
           <td>風險</td>
           <td>沒有風險模型</td>
-          <td><button class="term lookup" data-k="q">Q1～Q4</button>、<button class="term misread" data-k="undecided">未判定</button>、做的人與承擔的人分開；<button class="term missing" data-k="apollo">Apollo</button> 另有 <button class="term misread" data-k="circle">⚪</button> <button class="term misread" data-k="undecided">未判定</button>與<button class="term lookup" data-k="drift">程式碼漂移</button>比對</td>
+          <td><button class="term lookup" data-k="q">四項風險提問</button>、<button class="term misread" data-k="undecided">未判定</button>、做的人與承擔的人分開；<button class="term missing" data-k="apollo">某個內部系統</button> 另有 <button class="term misread" data-k="circle">⚪</button> <button class="term misread" data-k="undecided">未判定</button>與<button class="term lookup" data-k="drift">程式碼漂移</button>比對</td>
           <td>規格寫得再好，也擋不住「沒想到的事」</td>
         </tr>
         <tr>
           <td>學習迴路</td>
           <td>每個功能各做各的</td>
-          <td><button class="term lookup" data-k="prior">前例發現回顧</button>（<button class="term lookup" data-k="no17">No.17 的 F-xx</button> 帶到 <button class="term missing" data-k="no21">No.21</button>）、<button class="term missing" data-k="devreport">dev-report</button>、<button class="term missing" data-k="backtest">回測</button></td>
+          <td><button class="term lookup" data-k="prior">前例發現回顧</button>（<button class="term lookup" data-k="no17">前案表單的某條發現</button> 帶到 <button class="term missing" data-k="no21">後案表單</button>）、<button class="term missing" data-k="devreport">某份開發報告</button>、<button class="term missing" data-k="backtest">回測</button></td>
           <td>重複型工作才有同型實測可以用</td>
         </tr>
         <tr>
@@ -321,8 +321,8 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
     <tr><td>定義留在對話裡</td><td>註明 <code>本次對話自創</code></td><td>讀者沒有地方可查</td></tr>
     <tr><td>日常詞帶私有意思</td><td><code>上限</code> 指風險全發生時的時數</td><td>讀錯了也不會察覺</td></tr>
     <tr><td>兩個詞指涉重疊</td><td><code>未判定</code> 與 <code>⚪</code></td><td>兩件事被讀成一件</td></tr>
-    <tr><td>範例需要解碼</td><td><code>No.17 的 F-xx</code> 要查三層</td><td>範例反而更難懂</td></tr>
-    <tr><td>名詞表有漏</td><td><code>SDD</code>、<code>dev-report</code>、<code>回測</code> 沒列</td><td>AI 自列的表不可靠</td></tr>
+    <tr><td>範例需要解碼</td><td>「前案表單的某條發現」要查三層</td><td>範例反而更難懂</td></tr>
+    <tr><td>名詞表有漏</td><td><code>SDD</code>、「某份開發報告」、<code>回測</code> 沒列</td><td>AI 自列的表不可靠</td></tr>
     <tr><td>定義和使用分開</td><td>名詞表是另一張表</td><td>每讀一格就要跳一次</td></tr>
   </tbody>
 </table></div>
@@ -331,8 +331,8 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
 <h3>為什麼 AI 特別容易這樣寫</h3>
 <pre><code> 模型的 context（看得到）             讀者手上的文件（看不到）
 ┌──────────────────────────┐        ┌──────────────────────────┐
-│ 對話中取的代號 Q1～Q4      │        │                          │
-│ 計畫裡的 BUDGET-1          │──寫出──▶│ 「Q1～Q4、未判定」         │
+│ 對話中取的四項風險提問     │        │                          │
+│ 計畫裡的某項預算檢查       │──寫出──▶│ 「四項風險提問、未判定」   │
 │ 前面回合定義的「未判定」   │        │     ↑ 定義沒跟著進來      │
 └──────────────────────────┘        └──────────────────────────┘</code></pre>
 <p>模型寫作時，context 裡有對話、計畫與子任務回報，這些內容讀者都看不到。代號的定義留在對話裡，文件只帶走代號。寫作研究稱這種文字為作者本位文字（writer-based prose，Flower 1979）：作者把自己的思考過程原樣交出，使用只對自己有意義的代號詞。名詞表上的 <code>本次對話自創</code> 是這個機制的直接證據。</p>
@@ -342,12 +342,12 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
 <div class="two">
   <div>
     <h4>定義壓縮成代號</h4>
-    <p>結算單：P50、上限、BUDGET-1 三問</p>
+    <p>結算單：P50、上限、某項預算檢查</p>
     <p style="color:var(--muted)">格子短，但讀不懂。</p>
   </div>
   <div>
     <h4>定義塞回格子</h4>
-    <p>每份規格附結算單：中位數估計時數（P50，有一半機會在這個時數內完成）、最壞情況時數（估工檔列出的風險全部發生時），以及開工前和 PM 對齊預算的三個問題（團隊規則 BUDGET-1）</p>
+    <p>每份規格附結算單：中位數估計時數（P50，有一半機會在這個時數內完成）、最壞情況時數（估工檔列出的風險全部發生時），以及開工前和 PM 對齊預算的三個問題（某項預算檢查）</p>
     <p style="color:var(--muted)">讀得懂，但無法比較。</p>
   </div>
 </div>
@@ -521,7 +521,7 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
     <tr><td>第三階段</td><td>冷讀者比較兩個版本</td><td>規則判不出的保留或刪除</td><td>只在必要時使用</td></tr>
   </tbody>
 </table></div>
-<p>第一階段辨識的代號樣式：大寫加數字（<code>P50</code>、<code>BUDGET-1</code>）、範圍（<code>Q1～Q4</code>）、全大寫縮寫（<code>SDD</code>）、編號（<code>No.17</code>）、圈號（<code>判準 ①</code>）、狀態符號（<code>⚪</code>），以及「方案、根因、選項」等固定前綴接單一大寫字母（<code>方案 B</code>）。</p>
+<p>第一階段辨識的代號樣式：大寫加數字（<code>P50</code>、<code>XYZ-100</code>）、範圍（<code>T1～T4</code>）、全大寫縮寫（<code>SDD</code>）、編號（<code>No.42</code>）、圈號（<code>規則 ①</code>）、狀態符號（<code>⚪</code>），以及「方案、根因、選項」等固定前綴接單一大寫字母（<code>方案 B</code>）。這些是虛構的樣式範例，不是任何真實專案的內部詞。</p>
 
 <h2>名詞表（選用）</h2>
 <p>repo 裡有名詞表（glossary）時，plugin 把它當成讀者打得開的定義來源；沒有時略過，不報錯。</p>
@@ -559,7 +559,7 @@ footer { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); margi
   "exclude": ["**/CHANGELOG.md"],
   "max_cell_chars": 40,
   "allow_terms": ["MediatR"],
-  "known_terms": { "BUDGET-1": "docs/rules/budget.md" },
+  "known_terms": { "XYZ-100": "docs/rules/budget.md" },
   "glossary_files": [],
   "console_mode": "log"
 }</code></pre>
@@ -587,7 +587,7 @@ python3 -m unittest tests/test_prose_check.py       # 驗證規則</code></pre>
 <p><code>evals/fixtures</code> 有三份樣本：參照斷裂的表格、定義全塞進格子的表格、兩層結構的正面範例。調整規則前先在這裡加樣本。</p>
 
 <h2>已知限制</h2>
-<p>第一階段以規則比對，小寫的自創詞（例如 <code>dev-report</code>）抓不到，交給第二階段。「詞（說明）」與「說明（詞）」兩種寫法都視為已定義；說明內容是否正確，要靠第二階段確認。回覆檢查讀的是 transcript 檔；Claude Code 若改變 transcript 格式，這部分需要跟著調整。紀錄檔是否進版控由團隊決定；不想進版控就把 <code>.prose-check/</code> 加進 <code>.gitignore</code>。</p>
+<p>第一階段以規則比對，小寫的自創詞（例如 <code>work-log</code>）抓不到，交給第二階段。「詞（說明）」與「說明（詞）」兩種寫法都視為已定義；說明內容是否正確，要靠第二階段確認。回覆檢查讀的是 transcript 檔；Claude Code 若改變 transcript 格式，這部分需要跟著調整。紀錄檔是否進版控由團隊決定；不想進版控就把 <code>.prose-check/</code> 加進 <code>.gitignore</code>。</p>
 
 <h2>文獻依據</h2>
 <p>Flower 1979（作者本位文字）、Pinker 2014（知識的詛咒）、Gopen 與 Swan 1990（句首放舊資訊、句尾放新資訊）。完整出處與各自的主張見 <code>skills/prose-review/references/principles.md</code>。</p>
@@ -608,12 +608,12 @@ const TERMS = {
   c1:        { kind: "missing", gloss: null, problem: "名詞表沒列。圈號代表某份清單的第一項，讀者需要那份清單，但不知道它在哪裡。" },
   q:         { kind: "lookup", gloss: "本次對話自創：事實、反事實（不處理會怎樣）、可能性、干預（怎麼處理、誰負責）", problem: "名詞表註明這是在對話中自創的。離開那段對話，就沒有任何長期來源。" },
   undecided: { kind: "misread", gloss: "本次對話自創：還沒查證「會不會發生」，所以不排優先順序", problem: "和 ⚪ 指涉重疊：「未判定」是不知道會不會發生，⚪ 是不知道有多嚴重，原表卻寫成「⚪ 未判定」。" },
-  apollo:    { kind: "missing", gloss: null, problem: "名詞表的「Apollo ⚪」條目只解釋了 ⚪，沒說明 Apollo 是什麼、為什麼單獨列出。" },
+  apollo:    { kind: "missing", gloss: null, problem: "名詞表的「某個內部系統 ⚪」條目只解釋了 ⚪，沒說明某個內部系統是什麼、為什麼單獨列出。" },
   circle:    { kind: "misread", gloss: "這條風險還沒判定嚴重性", problem: "和「未判定」指涉重疊，兩件事被讀成一件。" },
   drift:     { kind: "lookup", gloss: "分析時看的程式碼，到開工時已經被別人改過", problem: "定義在另一張表。" },
   prior:     { kind: "lookup", gloss: "把前幾張同類表單施工時踩到的問題，逐條判斷這張會不會再踩", problem: "自創的複合詞，要查名詞表。" },
-  no17:      { kind: "lookup", gloss: "第 17 張標準表單（MAYOFORM-5733）的第 xx 條施工發現", problem: "範例本身要查三層：No.17、表單編號、F-xx。範例反而增加理解成本。" },
-  no21:      { kind: "missing", gloss: null, problem: "名詞表沒列，只能從 No.17 的寫法推測是第 21 張表單。" },
+  no17:      { kind: "lookup", gloss: "某張標準表單的第 xx 條施工發現", problem: "範例本身要查三層：是哪一次的前案、對應哪一張標準表單，以及哪一條發現。範例反而增加理解成本。" },
+  no21:      { kind: "missing", gloss: null, problem: "名詞表沒列，只能從前案表單的寫法推測是後案表單。" },
   devreport: { kind: "missing", gloss: null, problem: "名詞表沒列。小寫的自創詞，規則比對也抓不到，只能靠冷讀者。" },
   backtest:  { kind: "missing", gloss: null, problem: "名詞表沒列。讀者不知道「回測」在這裡指什麼。" },
   fileline:  { kind: "missing", gloss: null, problem: "名詞表沒列。" }

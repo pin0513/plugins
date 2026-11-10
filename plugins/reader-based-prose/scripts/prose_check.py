@@ -2,7 +2,7 @@
 """第一階段確定性檢查：找出讀者無法自行解讀的文字。
 
 檢查四件事：
-  未定義標籤   代號（P50、BUDGET-1、Q1～Q4、SDD、判準①、⚪）首次出現時沒有定義
+  未定義標籤   代號（P50、XYZ-100、T1～T4、SDD、規則①、⚪）首次出現時沒有定義
   對話殘留     文件引用了只存在於對話中的內容（「本次對話」「as discussed」）
   表格過載     表格單格字數超過門檻，比較功能被細節擠壞
   來源失效     設定檔登錄的術語來源檔不存在
@@ -37,7 +37,7 @@ DEFAULT_CONFIG = {
     "exclude": ["**/CHANGELOG.md", "**/node_modules/**", "**/.git/**"],
     "max_cell_chars": 40,
     "max_findings": 15,
-    "known_terms": {},             # {"BUDGET-1": "docs/rules/budget.md"}：術語 → 定義來源
+    "known_terms": {},             # {"XYZ-100": "docs/rules/budget.md"}：術語 → 定義來源
     "allow_terms": [],             # 讀者一定認得、不需要定義的詞
     "glossary_files": [],          # 明確指定的 glossary；空清單代表自動搜尋
     "glossary_autodiscover": True,
@@ -183,7 +183,7 @@ def is_defining(text: str, start: int, end: int, all_spans) -> bool:
     after = text[end:end + 200]
     if RE_GLOSS_AFTER.match(after):                 # P50（中位數估計）
         return True
-    if RE_DEF_VERB_AFTER.match(after):              # G1 是…／⚪：…
+    if RE_DEF_VERB_AFTER.match(after):              # ZZ1 是…／⚪：…
         return True
     # 表格的第一欄就是這個詞（glossary 列）
     ls = text.rfind("\n", 0, start) + 1
@@ -425,7 +425,7 @@ def run_cli(args: list[str]) -> int:
 
 # ── SessionStart：預防 ──────────────────────────────────
 CONSOLE_RULES = """[reader-based-prose] 給人看的文字（回覆、摘要、報告、文件）遵守以下規則：
-1. 不為選項、原因、段落臨時取代號（方案 B、根因 B、Q1～Q4）。使用者沒用過的代號，不要在後續回覆中引用；需要引用時，寫出內容本身。
+1. 不為選項、原因、段落臨時取代號（方案 B、根因 B、T1～T4）。使用者沒用過的代號，不要在後續回覆中引用；需要引用時，寫出內容本身。
 2. 不引用前一則回覆的章節編號（依 4.1）；直接寫出被引用的內容。
 3. 代號首次出現就定義。業界通用縮寫（API、SQL、PR）除外。
 4. 日常詞不賦予私有意思；兩個概念的名稱要能區分。
